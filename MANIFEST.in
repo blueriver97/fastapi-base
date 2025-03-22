@@ -1,0 +1,2 @@
+recursive-include src/base/api/http/static *
+recursive-include src/base/api/http/templates *

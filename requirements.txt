@@ -1,0 +1,32 @@
+pyyaml
+pytest
+watchgod
+watchfiles
+requests
+pydantic
+pydantic-settings
+python-dotenv
+
+# jwt
+python-jose
+bcrypt==4.0.1
+passlib[bcrypt]
+
+# for DB
+PyMySQL
+SQLAlchemy==2.0.39
+cryptography
+pymongo
+redis
+
+# for http
+fastapi
+uvicorn
+python-multipart
+jinja2
+
+# for websocket
+websockets
+websocket-client
+aiohttp
+python-socketio
