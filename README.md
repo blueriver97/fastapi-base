@@ -21,8 +21,8 @@ FastAPI 프로젝트 공통 템플릿
 ## Setup
 
 ```bash
-pip install -U pip setuptools wheel pre-commit wily
-bash init.sh
+./init.sh
+pip install -r requirements.txt
 ```
 
 ## 서버 설치
