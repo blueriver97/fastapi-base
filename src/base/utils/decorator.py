@@ -2,44 +2,34 @@ import functools
 import logging
 import time
 
-from ..config import ENV
-
-logger = logging.getLogger(ENV.app_name)
-
-"""
-import functools
-
-def decorator(func):
-    @functools.wraps(func)
-    def wrapper_decorator(*args, **kwargs):
-        # Do something before
-        value = func(*args, **kwargs)
-        # Do something after
-        return value
-    return wrapper_decorator
-"""
+logger = logging.getLogger(__file__)
 
 
 def perf(prefix: str = ""):
-    """
-    함수 실행 시간을 측정하는 데코레이터.
-
-    :param prefix: 로그에 추가할 접두사
-    """
-
-    def __pass_args__(func):
+    def decorator(func):
         @functools.wraps(func)
-        def __impl__(*args, **kwargs):
+        def wrapper(*args, **kwargs):
             start_time = time.perf_counter()
             result = func(*args, **kwargs)
             end_time = time.perf_counter()
             runtime = end_time - start_time
 
-            location = f"{prefix}:{func.__name__}" if prefix else func.__name__
-            logger.debug(f"{location} - {runtime * 1_000:.3f} ms")
+            logger.debug(f"'{prefix}{func.__name__}' executed in {runtime * 1_000:.3f} ms")
 
             return result
 
-        return __impl__
+        return wrapper
 
-    return __pass_args__
+    return decorator
+
+
+"""
+@perf("API:")
+def call_external_api():
+    time.sleep(0.2)
+    return {"status": "ok"}
+
+
+call_external_api()
+# 예상 로그: 'API:call_external_api' executed in 200.456 ms
+"""

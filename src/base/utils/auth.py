@@ -1,61 +1,68 @@
-import logging
-
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from typing import Optional
+from datetime import datetime, timedelta, UTC
 from jose import JWTError, jwt
+from fastapi import HTTPException, status
+from passlib.context import CryptContext
+from base.config import settings
 
-from ..config import ENV
-from ..models import UserORM
-from ..models.auth import TokenData, User
-from ..utils import DBManager
+# 비밀번호 해싱 설정
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/secure/token")  # URL 주소 또는 로컬 Path 함수 경로
-
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = ENV.auth_secret_key
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-logger = logging.getLogger(ENV.app_name)
+# --- Mock 데이터베이스 ---
+# 실제 인증 시스템이 구현되기 전까지 사용할 임시 클라이언트 정보입니다.
+# '비밀번호'는 실제 값 대신 해시된 값을 저장합니다.
+MOCK_CLIENTS_DB = {settings.app.auth.root_user: {"hashed_secret": pwd_context.hash(settings.app.auth.root_password)}}
 
 
-def get_user(username: str):
-    with DBManager() as engine:
-        users = engine.session.query(UserORM).filter(UserORM.username == username).all()
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """일반 비밀번호와 해시된 비밀번호를 비교합니다."""
+    return pwd_context.verify(plain_password, hashed_password)
 
-    if not users:
+
+def validate_client_credentials(client_id: str, client_secret: str) -> Optional[str]:
+    """
+    클라이언트 자격증명을 확인합니다. (Mock 버전)
+    성공 시 client_id를, 실패 시 None을 반환합니다.
+    """
+    client_data = MOCK_CLIENTS_DB.get(client_id)
+    if not client_data:
         return None
 
-    user_dict = users[0].as_dict()
-    return User.model_validate(user_dict)
+    if not verify_password(client_secret, client_data["hashed_secret"]):
+        return None
+
+    # 인증 성공 시, 객체 대신 클라이언트 ID 문자열만 반환
+    return client_id
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """액세스 토큰을 생성합니다."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(UTC) + expires_delta
+    else:
+        expire = datetime.now(UTC) + timedelta(seconds=settings.app.auth.token_expire_seconds)
+
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.app.auth.secret_key, algorithm=settings.app.auth.algorithm)
+    return encoded_jwt
+
+
+def decode_access_token(token: str) -> str:
+    """
+    Validates and decodes the JWT token to extract the subject (client_id).
+    JWT 토큰을 검증하고 디코딩하여 subject (client_id)를 추출합니다.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-
-        if username is None:
+        payload = jwt.decode(token, settings.app.auth.secret_key, algorithms=[settings.app.auth.algorithm])
+        client_id: Optional[str] = payload.get("sub")
+        if client_id is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
-
     except JWTError:
         raise credentials_exception
-
-    user = get_user(username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
-    return current_user
+    return client_id

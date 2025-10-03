@@ -5,12 +5,7 @@ from typing import List, Optional, Union
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
-from ..config import ENV
-from ..constants import Color
-from ..models.exception import Fallback
-from ..models.type import FallbackType
-
-logger = logging.getLogger(ENV.app_name)
+logger = logging.getLogger(__file__)
 
 
 class SqliteManager:
@@ -30,25 +25,22 @@ class SqliteManager:
         exception_traceback: Optional[traceback.StackSummary],
     ):
         self.session.close()
-        if exception_value:
-            logger.error(f"Exception occurred: {traceback.format_exc()}")
-            raise Fallback(type=FallbackType.TRANSACTION_FAIL, traceback=traceback.format_exc())
 
     def create_table(self, orm) -> None:
         if not inspect(self.engine).has_table(orm.__tablename__):
             orm.__table__.create(bind=self.engine, checkfirst=True)
-            logger.info(f"{Color.ORANGE}Created table({orm.__table__}).{Color.DEFAULT}")
+            logger.info(f"Created table({orm.__table__}).")
 
     def drop_table(self, orm) -> None:
         if inspect(self.engine).has_table(orm.__tablename__):
             orm.__table__.drop(bind=self.engine, checkfirst=True)
-            logger.info(f"{Color.ORANGE}Dropped table({orm.__table__}).{Color.DEFAULT}")
+            logger.info(f"Dropped table({orm.__table__}).")
 
     def truncate_table(self, orm) -> None:
         if inspect(self.engine).has_table(orm.__tablename__):
             self.session.query(orm).delete()
             self.session.commit()
-            logger.info(f"{Color.ORANGE}Truncated table({orm.__table__}).{Color.DEFAULT}")
+            logger.info(f"Truncated table({orm.__table__}).")
 
     def insert(self, items: Union[object, List[object]] = None, batch: int = 100) -> int:
         if items is None:

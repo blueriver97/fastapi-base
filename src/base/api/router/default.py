@@ -1,33 +1,30 @@
-import datetime
 import logging
-
+import datetime
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
+from base.utils.common import convert_datetime_to_timestamp
+from base.config import settings
 
-from ...config import ENV
-from ...utils.common import convert_datetime_to_timestamp
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="",
-    tags=["Admin APIs"],
-    dependencies=[],
+    prefix="/app",
+    tags=["Default"],
     responses={404: {"description": "Not found"}},
 )
-
-logger = logging.getLogger(ENV.app_name)
 
 
 @router.get("/restart", status_code=status.HTTP_200_OK)
 async def restart():
-    watch_file = f"{ENV.base_dir}/timestamp.tmp"
+    watch_file = f"{settings.app.root}/timestamp.tmp"
     with open(watch_file, "w", encoding="utf-8") as f:
         f.write(convert_datetime_to_timestamp(datetime.datetime.now()))
 
 
 @router.get("/config", status_code=status.HTTP_200_OK)
 async def setting():
-    result = ENV.dict(exclude=ENV.except_vars())
-    return JSONResponse(content=result)
+    config = settings.app.model_dump_json(indent=2)
+    return JSONResponse(content=config)
 
 
 @router.get("/ping", status_code=status.HTTP_200_OK)

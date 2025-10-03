@@ -9,7 +9,7 @@ import os
 import dotenv
 import socketio
 
-from base.models.data import Message
+from base.model.data import Message
 
 # Note.1 Global Vars
 sio = socketio.Client(logger=False, engineio_logger=False)

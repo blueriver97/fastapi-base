@@ -1,74 +1,42 @@
 # FastAPI-Base
 
----
-
 <!-- TOC -->
 
 - [FastAPI-Base](#fastapi-base)
-  - [Setup](#setup)
-  - [서버 설치](#서버-설치)
-  - [서버 실행](#서버-실행)
-    - [파이썬 실행](#파이썬-실행)
-    - [Uvicorn 실행](#uvicorn-실행)
-    - [Pytest 테스트](#pytest-테스트)
-  - [Issue](#issue)
+  - [설치](#설치)
+  - [실행](#실행)
+    - [Uvicorn](#uvicorn)
+    - [Pytest](#pytest)
+  - [이슈 처리](#이슈-처리)
     - [1. How to install pymssql on macOS (Using SQL server)](#1-how-to-install-pymssql-on-macos-using-sql-server)
 
-## <!-- TOC -->
+<!-- TOC -->
+
+---
 
 FastAPI 프로젝트 공통 템플릿
 
-## Setup
+## 설치
 
 ```bash
 ./init.sh
 pip install -r requirements.txt
+pip install [-e] .
 ```
 
-## 서버 설치
+## 실행
+
+### Uvicorn
 
 ```bash
 # Dev
-pip install -e .
+uvicorn base.api:http_app --host=0.0.0.0 --port=9090 [--reload --reload-dir src/base] [--env-file tests/.env]
 
 # Prod
-pip install .
+uvicorn base.api:http_app --host=0.0.0.0 --port=9090 [--workers 4]
 ```
 
-## 서버 실행
-
-<aside>
-💡Websocket 서버 시작 시 other_asgi_app으로 HTTP 서버도 동작함.
-</aside>
-
-```bash
-cd tests
-python3 run_server.py
-```
-
-### Uvicorn 실행
-
-**HTTP**
-
-```bash
-# Dev
-uvicorn base.api:http_app --host=0.0.0.0 --port=9090 [--reload --reload-dir src/base] --env-file tests/dev.env
-
-# Prod
-uvicorn base.api:http_app --host=0.0.0.0 --port=9090 [--workers 4] --env-file tests/prod.env
-```
-
-**Websocket**
-
-```bash
-# Dev
-uvicorn base.api:ws_app --host=0.0.0.0 --port=9090 [--reload --reload-dir src/base] --env-file tests/dev.env
-
-# Prod
-uvicorn base.api:ws_app --host=0.0.0.0 --port=9090 [--workers 4] --env-file tests/prod.env
-```
-
-### Pytest 실행
+### Pytest
 
 `test_xxx.py` 파일을 실행하여 테스트를 수행함.
 

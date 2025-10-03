@@ -1,3 +1,23 @@
+[project]
+name = "base"                  # 패키지 이름
+version = "1.0.0"              # 패키지 버전
+description = ""                # 패키지 설명
+readme = "README.md"           # README 파일 경로 (선택 사항)
+requires-python = ">=3.11"      # Python 버전 요구 사항
+license = { file = "LICENSE" } # 라이센스 파일 경로 (선택 사항)
+
+[build-system]
+requires = ["setuptools"]  # 패키지를 빌드하는 데 필요한 의존성
+build-backend = "setuptools.build_meta"  # 빌드 백엔드
+
+[tool.setuptools]
+packages = { find = { where = ["src"] } }
+zip-safe = false                   # zip_safe 플래그
+include-package-data = true        # 패키지 데이터 포함 설정
+
+[tool.setuptools.package-data]
+"base" = ["*.yaml"]
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -78,5 +98,5 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [[tool.mypy.overrides]]
-module = ["fastapi.*", "sqlalchemy.*", "uvicorn.*", "pydantic.*", "pydantic_settings.*", "dotenv.*", "socketio.*"]
+module = ["base.*", "fastapi.*", "uvicorn.*", "pydantic.*", "pydantic_settings.*", "dotenv.*"]
 ignore_missing_imports = true

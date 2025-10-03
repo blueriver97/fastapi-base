@@ -1,5 +1,3 @@
-from .main import app as http_app
-from .router import admin_router, secure_router
+from base.api.main import app as http_app
 
-http_app.include_router(admin_router)
-http_app.include_router(secure_router)
+__all__ = ["http_app"]

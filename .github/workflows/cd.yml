@@ -1,81 +1,69 @@
 name: CD
 
 on:
-  #  push:
-  #    branches:
-  #      - main
-  #      - develop
-  workflow_dispatch: # checkov:skip=CKV_GHA_7
+  workflow_dispatch:
     inputs:
       environment:
-        description: "배포 환경 선택 (prod 또는 dev)"
+        description: "Deployment Environment"
         required: true
-        type: string
+        type: choice
+        options:
+          - dev
+          - prod
 
 concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
+  group: ${{ github.ref }}-${{ github.event.inputs.environment }}-${{ github.workflow }}
   cancel-in-progress: true
 
 permissions:
   contents: read
-  actions: read
-  checks: read
 
 jobs:
-  deploy-dev:
-    runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v4
-        with:
-          ref: "develop"
-      - name: 환경 변수 설정
-        run: echo "PROJECT_NAME=$(echo '${{ github.repository }}' | cut -d'/' -f2)" >> "$GITHUB_ENV"
-      - name: 배포 서버 환경 준비
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_DEPLOY_KEY }}
-          script: |
-            sudo mkdir -p /opt/${{ env.PROJECT_NAME }}
-            sudo chown -R ${{ secrets.DEV_USER }}:${{ secrets.DEV_USER }} /opt/${{ env.PROJECT_NAME }}
-      - name: 코드 배포
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -az --delete
-          path: ./
-          remote_path: /opt/${{ env.PROJECT_NAME }}
-          remote_host: ${{ secrets.DEV_HOST }}
-          remote_user: ${{ secrets.DEV_USER }}
-          remote_key: ${{ secrets.DEV_DEPLOY_KEY }}
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment }} # GitHub Environments 사용 권장
+    runs-on: self-hosted
 
-  deploy-prod:
-    runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    env:
+      REMOTE_HOST: ${{ secrets.HOST }}
+      REMOTE_USER: ${{ secrets.USER }}
+      REMOTE_GROUP: ${{ secrets.GROUP }}
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+
+    # 사용자의 의도를 반영한 조건: develop->dev, main->dev/prod
+    if: (github.ref == 'refs/heads/develop' && github.event.inputs.environment == 'dev') || github.ref == 'refs/heads/main'
+
     steps:
-      - name: 코드 체크아웃
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: "main"
-      - name: 환경 변수 설정
-        run: echo "PROJECT_NAME=$(echo '${{ github.repository }}' | cut -d'/' -f2)" >> "$GITHUB_ENV"
-      - name: 배포 서버 환경 준비
-        uses: appleboy/ssh-action@v1
+          ref: ${{ github.ref }}
+
+      - name: Set project name
+        shell: bash
+        run: |
+          repo_full="${{ github.repository }}"
+          echo "PROJECT_NAME=${repo_full#*/}" >> "$GITHUB_ENV"
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_DEPLOY_KEY }}
-          script: |
-            sudo mkdir -p /opt/${{ env.PROJECT_NAME }}
-            sudo chown -R ${{ secrets.PROD_USER }}:${{ secrets.PROD_USER }} /opt/${{ env.PROJECT_NAME }}
-      - name: 코드 배포
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -az --delete
-          path: ./
-          remote_path: /opt/${{ env.PROJECT_NAME }}
-          remote_host: ${{ secrets.PROD_HOST }}
-          remote_user: ${{ secrets.PROD_USER }}
-          remote_key: ${{ secrets.PROD_DEPLOY_KEY }}
+          ssh-private-key: ${{ env.DEPLOY_KEY }}
+
+      - name: Prepare server directory
+        # 중요: 서버에 비밀번호 없는 sudo 설정이 반드시 필요합니다.
+        # Use native SSH client which works on Linux, macOS, and Windows.
+        # The ssh-agent step handles authentication automatically.
+        # sudo visudo
+        # $REMOTE_USER ALL=(ALL) NOPASSWD: /bin/mkdir, /bin/chown
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} << 'EOF'
+            sudo mkdir -p /opt/git/${{ env.PROJECT_NAME }}
+            sudo chown -R ${{ env.REMOTE_USER }}:${{ env.REMOTE_GROUP }} /opt/git/${{ env.PROJECT_NAME }}
+          EOF
+
+      - name: Rsync deploy
+        run: |
+          rsync -az --delete \
+            -e "ssh -o StrictHostKeyChecking=no -p 22" ./ \
+            ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:/opt/git/${{ env.PROJECT_NAME }}/

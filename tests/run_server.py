@@ -7,7 +7,7 @@ def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("-P", "--port", type=int, default=9090)
     parser.add_argument("-R", "--reload", type=bool, default=True)
-    parser.add_argument("--env_file", type=str, default="dev.env")
+    parser.add_argument("--env_file", type=str, default=".env")
     return parser.parse_args()
 
 
