@@ -11,7 +11,6 @@ import uuid
 from typing import Any, Dict, List, Optional, Union, Callable
 
 import requests
-from passlib.context import CryptContext
 
 
 def post_http_api(
@@ -246,18 +245,6 @@ def uuid_to_b64uuid(uuid4: uuid.UUID) -> str:
 def b64uuid_to_uuid(b64uuid: str) -> str:
     """Base64 URL 안전한 문자열을 UUID로 변환하는 함수."""
     return str(uuid.UUID(bytes=base64.urlsafe_b64decode(b64uuid)))
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """비밀번호 검증 함수."""
-    crypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    return crypt_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password: str) -> str:
-    """비밀번호 해시 생성 함수."""
-    crypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    return crypt_context.hash(password)
 
 
 def get_hostname() -> str:
