@@ -1,10 +1,23 @@
 [project]
 name = "base"                  # 패키지 이름
 version = "1.0.0"              # 패키지 버전
-description = ""                # 패키지 설명
+description = "__PROJECT_DESCRIPTION__"                # 패키지 설명
 readme = "README.md"           # README 파일 경로 (선택 사항)
 requires-python = ">=3.11"      # Python 버전 요구 사항
 license = { file = "LICENSE" } # 라이센스 파일 경로 (선택 사항)
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+    "jinja2",
+    "dotenv",
+    "watchfiles",
+    "python-jose[cryptography]",
+    "bcrypt==4.0.1",
+    "passlib[bcrypt]",
+    "requests",
+]
 
 [build-system]
 requires = ["setuptools"]  # 패키지를 빌드하는 데 필요한 의존성
@@ -60,7 +73,7 @@ target-version = "py311"
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 # McCabe complexity (`C901`) by default.
-select = ["E4", "E7", "E9", "F"]
+select = ["E4", "E7", "E9", "F", "I", "UP"]
 ignore = []
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -98,5 +111,5 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [[tool.mypy.overrides]]
-module = ["base.*", "fastapi.*", "uvicorn.*", "pydantic.*", "pydantic_settings.*", "dotenv.*"]
+module = []
 ignore_missing_imports = true
