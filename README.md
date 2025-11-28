@@ -191,6 +191,56 @@ ignore_missing_imports = true
 
 MyPy는 해당 모듈에서 가져온 객체들을 모두 Any 타입(검사 안 함)으로 취급하게 됩니다.
 
+### 5. Wily 사용 방법 (Wily Usage)
+
+Wily는 Python 코드의 복잡도를 측정하여 변화를 추적하는 도구입니다.
+
+pre-commit 단계에서 자동으로 실행되지만, 초기 설정이나 수동 분석이 필요할 때 다음 가이드를 참고하십시오.
+
+- 초기 데이터 생성 (Build)
+
+  Wily는 Git 커밋 기록을 순회하며 복잡도를 분석하므로, 사용 전 반드시 인덱스를 생성해야 합니다.
+
+  ```bash
+  # src 디렉토리를 기준으로 복잡도 분석 데이터 생성
+  wily build src
+  ```
+
+- "Dirty repository" 오류 해결
+
+  wily build 실행 시 다음과 같은 에러가 발생할 수 있습니다.
+
+  `Failed to setup archiver: 'Dirty repository, make sure you commit/stash files first'`
+
+  Wily는 과거 커밋으로 체크아웃(Checkout)하며 분석을 수행합니다.
+
+  이때 작업 중인 파일(Uncommitted changes)이나 스테이징(Staged)된 파일이 있으면 충돌 방지를 위해 실행이 중단됩니다.
+
+  src 폴더 외의 파일(README.md 등)이 수정된 경우에도 발생합니다. 이 경우 작업 중인 변경 사항을 잠시 치워두고(stash), 빌드 후 다시 복구(pop)해야 합니다.
+
+  ```bash
+  # 1. 작업 중인 내용 임시 저장 (작업 트리를 깨끗하게 만듦)
+  git stash
+
+  # 2. Wily 빌드 실행
+  wily build src
+
+  # 3. 임시 저장했던 변경 사항 복구
+  git stash pop
+  ```
+
+- 리포트 확인 (Report)
+
+  빌드가 완료된 후, 현재 코드의 복잡도 순위를 확인하거나 특정 파일의 변화를 그래프로 볼 수 있습니다.
+
+  ```bash
+  # 가장 복잡한 함수/파일 순위 확인
+  wily rank src
+
+  # 특정 파일의 복잡도 변화 리포트
+  wily report src/base/utils/common.py
+  ```
+
 ## B. 트러블 슈팅 (Troubleshooting)
 
 ### 1. How to install pymssql on macOS (Using SQL server)
