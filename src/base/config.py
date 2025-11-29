@@ -15,7 +15,7 @@ class AuthConfig(BaseModel):
 
 
 class EnvConfig(BaseModel):
-    env: str
+    debug: bool
 
 
 class LoggerConfig(BaseModel):
@@ -27,7 +27,7 @@ class AppConfig(BaseModel):
     name: str
     root: Path = Field(Path(__file__).parent.parent.parent)
     auth: AuthConfig
-    # env: Dict[str, EnvConfig]
+    env: dict[str, EnvConfig]
     logger: LoggerConfig
 
 
@@ -37,10 +37,9 @@ class Settings:
         with resources.files("base").joinpath("settings.yaml").open("r", encoding="utf-8") as f:
             yaml_data = yaml.safe_load(f)
 
+        env = os.getenv("ENV", "local")
         self.app = AppConfig(**yaml_data)
-        # env = os.getenv("ENV", "local")
-        # self.env = self.app.env.get(env)
-
+        self.env = self.app.env[env]
         self.app.logger.dir.mkdir(parents=True, exist_ok=True)
 
         if not self.app.auth.secret_key:
