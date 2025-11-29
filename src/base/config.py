@@ -1,9 +1,9 @@
 import os
-import yaml
 from importlib import resources
 from pathlib import Path
+
+import yaml
 from pydantic import BaseModel, Field
-# from typing import Dict
 
 
 class AuthConfig(BaseModel):

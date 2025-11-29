@@ -8,14 +8,15 @@ import re
 import socket
 import sys
 import uuid
-from typing import Any, Dict, List, Optional, Union, Callable
+from collections.abc import Callable
+from typing import Any
 
 import requests
 
+CONTENT_TYPE_JSON = "application/json"
 
-def post_http_api(
-    url: str, uri: str, headers: Optional[Dict[str, str]] = None, body: Optional[Dict[str, Any]] = None
-) -> Any:
+
+def post_http_api(url: str, uri: str, headers: dict[str, str] | None = None, body: dict[str, Any] | None = None) -> Any:
     """
     HTTP POST 요청을 보내는 함수.
 
@@ -25,12 +26,12 @@ def post_http_api(
     :param body: 데이터
     :return: 요청 결과
     """
-    headers = headers or {"Content-type": "application/json"}
+    headers = headers or {"Content-type": CONTENT_TYPE_JSON}
     response = requests.post(f"http://{url}{uri}", json=body, headers=headers)
     return _handle_response(response)
 
 
-def get_http_api(url: str, uri: str, headers: Optional[Dict[str, str]] = None) -> Any:
+def get_http_api(url: str, uri: str, headers: dict[str, str] | None = None) -> Any:
     """
     HTTP GET 요청을 보내는 함수.
 
@@ -39,13 +40,13 @@ def get_http_api(url: str, uri: str, headers: Optional[Dict[str, str]] = None) -
     :param headers: 헤더
     :return: 조회 결과
     """
-    headers = headers or {"Content-type": "application/json"}
+    headers = headers or {"Content-type": CONTENT_TYPE_JSON}
     response = requests.get(f"http://{url}{uri}", headers=headers)
     return _handle_response(response)
 
 
 def delete_http_api(
-    url: str, uri: str, body: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None
+    url: str, uri: str, body: dict[str, Any] | None = None, headers: dict[str, str] | None = None
 ) -> Any:
     """
     HTTP DELETE 요청을 보내는 함수.
@@ -56,7 +57,7 @@ def delete_http_api(
     :param headers: 헤더
     :return: 요청 결과
     """
-    headers = headers or {"Content-type": "application/json"}
+    headers = headers or {"Content-type": CONTENT_TYPE_JSON}
     response = requests.delete(f"http://{url}{uri}", json=body, headers=headers)
     return _handle_response(response)
 
@@ -70,11 +71,11 @@ def _handle_response(response: requests.Response) -> Any:
 
 
 def assert_api(
-    right_answer: Dict[str, Any],
+    right_answer: dict[str, Any],
     url: str,
     uri: str = "",
-    body: Optional[Dict[str, Any]] = None,
-    parse_func: Optional[Callable] = None,
+    body: dict[str, Any] | None = None,
+    parse_func: Callable | None = None,
 ) -> bool:
     """
     API의 응답이 정답과 일치하는지 확인하는 함수.
@@ -95,10 +96,10 @@ def assert_api(
 
 
 def assert_answer(
-    right_answer: Union[Dict[str, Any], List[str]],
-    capture_list: List[str],
-    include_patterns: Optional[List[str]] = None,
-    exclude_patterns: Optional[List[str]] = None,
+    right_answer: dict[str, Any] | list[str],
+    capture_list: list[str],
+    include_patterns: list[str] | None = None,
+    exclude_patterns: list[str] | None = None,
 ) -> bool:
     """
     API 결과가 정답과 일치하는지 확인하는 함수.
@@ -121,7 +122,7 @@ def assert_answer(
 
 
 def _assert_dict_answer(
-    right_answer: Dict[str, Any], capture_list: List[str], include_patterns: List[str], exclude_patterns: List[str]
+    right_answer: dict[str, Any], capture_list: list[str], include_patterns: list[str], exclude_patterns: list[str]
 ) -> bool:
     """딕셔너리 정답을 검증하는 내부 함수."""
     for idx, key in enumerate(right_answer.keys()):
@@ -135,7 +136,7 @@ def _assert_dict_answer(
 
 
 def _assert_list_answer(
-    right_answer: List[str], capture_list: List[str], include_patterns: List[str], exclude_patterns: List[str]
+    right_answer: list[str], capture_list: list[str], include_patterns: list[str], exclude_patterns: list[str]
 ) -> bool:
     """리스트 정답을 검증하는 내부 함수."""
     for capture in capture_list:
@@ -148,7 +149,7 @@ def _assert_list_answer(
     return True
 
 
-def _check_patterns(text: str, include_patterns: List[str], exclude_patterns: List[str]) -> bool:
+def _check_patterns(text: str, include_patterns: list[str], exclude_patterns: list[str]) -> bool:
     """포함 및 제외 패턴을 확인하는 내부 함수."""
     for pattern in include_patterns:
         if not re.search(pattern, text):
@@ -180,7 +181,7 @@ def load_module(module_name: str, file_path: str) -> Any:
     return module
 
 
-def read_file_to_chunks(f_path: str, chunk_sz: int) -> List[bytes]:
+def read_file_to_chunks(f_path: str, chunk_sz: int) -> list[bytes]:
     """
     파일 내용을 읽어 chunks로 분할하는 함수.
 
@@ -198,7 +199,7 @@ def read_file_to_chunks(f_path: str, chunk_sz: int) -> List[bytes]:
     return chunks
 
 
-def save_chunks_to_file(chunks: List[bytes], f_path: str) -> int:
+def save_chunks_to_file(chunks: list[bytes], f_path: str) -> int:
     """
     분할된 청크를 하나의 파일에 출력하는 함수.
 
@@ -257,11 +258,11 @@ def get_pid() -> int:
     return os.getpid()
 
 
-def get_proc_listen_port(pid: int) -> List[int]:
+def get_proc_listen_port(pid: int) -> list[int]:
     """주어진 PID의 리슨 포트를 반환하는 함수."""
     os_name = platform.platform()
     ports: set[int] = set()
-    pattern = re.compile(r":[0-9]+")
+    pattern = re.compile(r":\d+")
 
     if "macOS" in os_name:
         read_lines = os.popen("lsof -i -P | grep -i LISTEN").readlines()

@@ -13,7 +13,7 @@ from base.model.data import Message
 
 # Note.1 Global Vars
 sio = socketio.Client(logger=False, engineio_logger=False)
-capture_list = list()
+capture_list = []
 capture_count = 0
 
 # Note.2 Load ENV Vars
@@ -59,7 +59,7 @@ def on_message(data):
 
 def init_socket():
     header = {"Content-Type": "application/json", "Authorization": ""}
-    auths = dict()
+    auths = {}
 
     host = os.environ["BASE_WEBSOCKET_HOST"]
     port = os.environ["BASE_WEBSOCKET_PORT"]
@@ -106,6 +106,10 @@ def test_init():
 
 
 def test_dm_000():
+    """
+    샘플 예시
+    :return:
+    """
     pass
 
 

@@ -6,6 +6,17 @@ logger = logging.getLogger(__file__)
 
 
 def perf(prefix: str = ""):
+    """
+    @perf("API:")
+    def call_external_api():
+        time.sleep(0.2)
+        return {"status": "ok"}
+
+
+    call_external_api()
+    # 예상 로그: 'API:call_external_api' executed in 200.456 ms
+    """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -21,15 +32,3 @@ def perf(prefix: str = ""):
         return wrapper
 
     return decorator
-
-
-"""
-@perf("API:")
-def call_external_api():
-    time.sleep(0.2)
-    return {"status": "ok"}
-
-
-call_external_api()
-# 예상 로그: 'API:call_external_api' executed in 200.456 ms
-"""

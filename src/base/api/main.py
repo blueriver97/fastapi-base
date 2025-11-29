@@ -16,12 +16,12 @@ logger = logging.getLogger(__file__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await startup_event()
+    startup_event()
     yield
-    await shutdown_event()
+    shutdown_event()
 
 
-async def startup_event():
+def startup_event():
     try:
         # await database.connect()
         logger.info("STARTUP HTTP SERVER")
@@ -29,7 +29,7 @@ async def startup_event():
         raise RuntimeError(f"Failed to start server: {e}")
 
 
-async def shutdown_event():
+def shutdown_event():
     try:
         # await database.disconnect()
         logger.info("SHUTDOWN HTTP SERVER")
