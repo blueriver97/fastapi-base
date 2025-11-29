@@ -1,13 +1,15 @@
 import logging
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from base.api.router.default import router as default_router
+
 from base.api.router.auth import router as auth_router
+from base.api.router.default import router as default_router
 
 logger = logging.getLogger(__file__)
 
@@ -21,6 +23,7 @@ async def lifespan(app: FastAPI):
 
 async def startup_event():
     try:
+        # await database.connect()
         logger.info("STARTUP HTTP SERVER")
     except Exception as e:
         raise RuntimeError(f"Failed to start server: {e}")
@@ -28,6 +31,7 @@ async def startup_event():
 
 async def shutdown_event():
     try:
+        # await database.disconnect()
         logger.info("SHUTDOWN HTTP SERVER")
     except Exception as e:
         raise RuntimeError(f"Failed to shutdown server: {e}")

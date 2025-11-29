@@ -1,10 +1,12 @@
 import datetime
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from base.utils.auth import validate_client_credentials, create_access_token, decode_access_token
+
 from base.config import settings
+from base.utils.auth import create_access_token, decode_access_token, validate_client_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class Token(BaseModel):
     token_type: str
 
 
-async def get_current_client_id(token: str = Depends(oauth2_scheme)) -> str:
+def get_current_client_id(token: str = Depends(oauth2_scheme)) -> str:
     """
     Dependency to decode and validate the access token.
     액세스 토큰을 디코딩하고 검증하는 의존성 함수.
@@ -38,7 +40,7 @@ async def get_current_client_id(token: str = Depends(oauth2_scheme)) -> str:
 
 
 @router.post("/token", response_model=Token)
-async def issue_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+def issue_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     클라이언트 자격증명(Client Credentials)을 확인하고 액세스 토큰을 발급합니다.
     - username 필드에 'Client ID'를,
@@ -70,7 +72,7 @@ async def issue_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @router.get("/me", response_model=dict)
-async def read_current_client_info(
+def read_current_client_info(
     current_client_id: str = Depends(get_current_client_id),
 ):
     """
