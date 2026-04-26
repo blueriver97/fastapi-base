@@ -2,7 +2,7 @@
 
 이 저장소는 FastAPI를 기반으로 하는 백엔드 애플리케이션 개발을 위한 템플릿입니다.
 
-팀의 표준 개발 환경, 보안 설정(TruffleHog, JWT), 코드 품질 분석(SonarQube, Ruff, Wily), 그리고 AI 기반 커밋 도구가 통합되어 있습니다.
+팀의 표준 개발 환경, 보안 설정(TruffleHog, JWT), 코드 품질 분석(Ruff, Wily), 그리고 AI 기반 커밋 도구가 통합되어 있습니다.
 
 새로운 백엔드 프로젝트를 시작할 때 이 저장소를 템플릿으로 사용하여 생성하십시오.
 
@@ -12,7 +12,7 @@
 
 - 프레임워크 (Framework): FastAPI (비동기 처리), Uvicorn (ASGI 서버)
 - 보안 (Security): TruffleHog를 통한 비밀 키(Secret Key) 커밋 방지
-- 품질 (Quality): SonarQube(정적 분석), Ruff(고속 린터), MyPy(타입 검사), Wily(복잡도 측정) 연동
+- 품질 (Quality): Ruff(고속 린터), MyPy(타입 검사), Wily(복잡도 측정) 연동
 - 자동화 (Automation): pre-commit 훅을 이용한 코드 포맷팅(Prettier) 및 커밋 메시지 검사, GitHub Actions(CI/CD)를 통한 테스트 및 배포 자동화
 - AI 지원 (AI Assistant): OpenCommit(Gemini)을 이용한 커밋 메시지 자동 작성
 
